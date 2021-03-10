@@ -1,6 +1,5 @@
 import './App.css';
-import GamePanel from "./js/components/GamePanel";
-import StatusPanel from "./js/components/StatusPanel";
+import GameScreen from "./js/components/GameScreen";
 import SettingsPanel from "./js/components/SettingsPanel";
 import ControlPanel from "./js/components/ControlPanel";
 
@@ -12,10 +11,7 @@ function App() {
           <SettingsPanel />
         </div>
         <div className="game-panel-area">
-          <GamePanel />
-        </div>
-        <div className="status-panel-area">
-          <StatusPanel />
+          <GameScreen />
         </div>
       </div>
       <div className="control-panel-area">

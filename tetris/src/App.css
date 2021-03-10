@@ -28,3 +28,17 @@
 .control-panel-area {
 
 }
+
+/*
+GameScreen
+*/
+.game-screen {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-status {
+  padding: 10px;
+}

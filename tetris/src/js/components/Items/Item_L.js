@@ -18,6 +18,21 @@ export class Item_L extends Item {
       this.itemData[0][1] = 1;
       this.itemData[0][2] = 1;
       this.itemData[1][2] = 1;
+    } else if (this.curDir === CONSTANT.ITEM_DIR.RIGHT) {
+      this.itemData[0][0] = 1;
+      this.itemData[1][0] = 1;
+      this.itemData[2][0] = 1;
+      this.itemData[0][1] = 1;
+    } else if (this.curDir === CONSTANT.ITEM_DIR.DOWN) {
+      this.itemData[0][0] = 1;
+      this.itemData[1][0] = 1;
+      this.itemData[1][1] = 1;
+      this.itemData[1][2] = 1;
+    } else if (this.curDir === CONSTANT.ITEM_DIR.LEFT) {
+      this.itemData[0][1] = 1;
+      this.itemData[1][1] = 1;
+      this.itemData[2][1] = 1;
+      this.itemData[2][0] = 1;
     }
 
     return this.itemData;

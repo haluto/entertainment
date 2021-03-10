@@ -16,7 +16,8 @@ export const CONSTANT = {
     UP: 0,
     RIGHT: 1,
     DOWN: 2,
-    LEFT: 3
+    LEFT: 3,
+    DIR_NUM: 4
   },
 
   ITEM: {

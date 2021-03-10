@@ -1,5 +1,6 @@
 import React from 'react';
 import {Item_L, ITEM_L} from './Items/Item_L';
+import {Button} from 'antd';
 import {CONSTANT} from './constant';
 
 const MAP_WIDTH = CONSTANT.GAME_PANEL.MAP_WIDTH;
@@ -7,9 +8,10 @@ const MAP_HEIGHT = CONSTANT.GAME_PANEL.MAP_HEIGHT;
 const GRID_SIDE_LEN = CONSTANT.GAME_PANEL.GRID_SIDE_LEN;
 const MAP_STYLE_BORDER = CONSTANT.GAME_PANEL.MAP_STYLE_BORDER;
 
-export default class GamePanel extends React.Component {
+export default class GameScreen extends React.Component {
   constructor(props) {
     super(props);
+    /*game panel*/
     this.gamePanel = null;
     this.canvas = null;
     this.setGamePanelRef = element => {
@@ -18,15 +20,32 @@ export default class GamePanel extends React.Component {
     this.setCanvasRef = element => {
       this.canvas = element;
     };
+
+    this.mapData = [];
+    this.curItem = null;
+    this.nextItem = null;
+    this.prePos = {x:4, y:0};
+    this.curPos = {x:4, y:0};
+
+    this.state = {
+      status: CONSTANT.GAME_STATUS.NOT_START,
+    };
   }
 
   drawScreen = () => {
-    this.curItem = new Item_L(0);
     let data = this.curItem.getItem();
+    // reset previous item to empty.
     for(let i=0;i<this.curItem.MAX_WIDTH;i++) {
       for(let j=0;j<this.curItem.MAX_HEIGHT;j++) {
-        //TODO: (4,0) is the initial position.
-        this.mapData[i+4][j] = data[i][j];
+        
+        this.mapData[i+this.prePos.x][j+this.prePos.y] = 0;
+      }
+    }
+    // set current item to map.
+    for(let i=0;i<this.curItem.MAX_WIDTH;i++) {
+      for(let j=0;j<this.curItem.MAX_HEIGHT;j++) {
+        
+        this.mapData[i+this.curPos.x][j+this.curPos.y] = data[i][j];
       }
     }
 
@@ -34,7 +53,7 @@ export default class GamePanel extends React.Component {
       for (let j=0;j<MAP_HEIGHT;j++) {
         this.ctx.save();
         if (this.mapData[i][j] === 1) {
-          this.ctx.fillStyle = "rgba(100, 100, 100, 0.5)";
+          this.ctx.fillStyle = "rgba(100, 100, 100, 1)";
           this.ctx.strokeStyle = "rgba(0, 0, 0, 1)";
         } else {
           this.ctx.save();
@@ -48,6 +67,38 @@ export default class GamePanel extends React.Component {
         this.ctx.restore();
       }
     }
+  }
+
+  gameLoop = () => {
+    this.drawScreen();
+    //TODO: need check bottom.
+    this.prePos.x = this.curPos.x;
+    this.prePos.y = this.curPos.y;
+    this.curPos.y ++;
+    console.log("gameLoop");
+    setTimeout(this.gameLoop, 1000);
+  }
+
+  buttonClickCb = () => {
+    let status = this.state.status;
+    if (status === CONSTANT.GAME_STATUS.NOT_START) {
+      // start game
+      status = CONSTANT.GAME_STATUS.RUNNING;
+      let dir = getRandomInt(CONSTANT.ITEM_DIR.DIR_NUM);
+      this.curItem = new Item_L(dir);
+      this.curPos.x = 4;
+      this.curPos.y = 0;
+      this.initData();
+      this.gameLoop();
+    } else if (status === CONSTANT.GAME_STATUS.RUNNING) {
+      status = CONSTANT.GAME_STATUS.PAUSE;
+    } else if (status === CONSTANT.GAME_STATUS.PAUSE) {
+      status = CONSTANT.GAME_STATUS.NOT_START;
+    }
+
+    this.setState({
+      status: status,
+    });
   }
 
   initData = () => {
@@ -74,18 +125,35 @@ export default class GamePanel extends React.Component {
     for (let i=0;i<MAP_WIDTH;i++) {
       this.mapData[i] = new Array(MAP_HEIGHT);
     }
-
-    this.initData();
-
-    this.drawScreen();
   }
 
   render = () => {
 
+    let buttonStr = '';
+    if (this.state.status == CONSTANT.GAME_STATUS.NOT_START) {
+      buttonStr = 'Start';
+    } else if (this.state.status == CONSTANT.GAME_STATUS.RUNNING) {
+      buttonStr = 'Pause';
+    } else if (this.state.status == CONSTANT.GAME_STATUS.PAUSE) {
+      buttonStr = 'Resume';
+    } else {
+      buttonStr = 'Error';
+    }
+
     return (
-      <div ref={this.setGamePanelRef}>
-        <canvas ref={this.setCanvasRef}></canvas>
+      <div className="game-screen">
+        <div ref={this.setGamePanelRef}>
+          <canvas ref={this.setCanvasRef}></canvas>
+        </div>
+        <div className="game-status">
+          <Button style={{width: '100px'}} onClick={this.buttonClickCb}>{buttonStr}</Button>
+        </div>
       </div>
     );
   }
+}
+
+
+function getRandomInt(max) {
+  return Math.floor(Math.random() * Math.floor(max));
 }

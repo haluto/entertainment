@@ -1,12 +1,11 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import {Item_L, ITEM_L} from './Items/Item_L';
+import {CONSTANT} from './constant';
 
-const MAP_WIDTH = 12;
-const MAP_HEIGHT = 20;
-const GRID_SIDE_LEN = 20; //px
-
-const MAP_STYLE_BORDER = 2; //px
+const MAP_WIDTH = CONSTANT.GAME_PANEL.MAP_WIDTH;
+const MAP_HEIGHT = CONSTANT.GAME_PANEL.MAP_HEIGHT;
+const GRID_SIDE_LEN = CONSTANT.GAME_PANEL.GRID_SIDE_LEN;
+const MAP_STYLE_BORDER = CONSTANT.GAME_PANEL.MAP_STYLE_BORDER;
 
 export default class GamePanel extends React.Component {
   constructor(props) {

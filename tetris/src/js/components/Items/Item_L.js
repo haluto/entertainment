@@ -1,4 +1,5 @@
-import { Item, ITEM_DIR } from './Item';
+import { Item } from './Item';
+import {CONSTANT} from '../constant';
 
 export const ITEM_L = 'item_L';
 
@@ -12,7 +13,7 @@ export class Item_L extends Item {
     }
     console.log("Item_L");
 
-    if (this.curDir === ITEM_DIR.UP) {
+    if (this.curDir === CONSTANT.ITEM_DIR.UP) {
       this.itemData[0][0] = 1;
       this.itemData[0][1] = 1;
       this.itemData[0][2] = 1;

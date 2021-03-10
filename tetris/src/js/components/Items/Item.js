@@ -1,13 +1,15 @@
-export const ITEM_DIR = {
-  UP: 0,
-  RIGHT: 1,
-  DOWN: 2,
-  LEFT: 3
+import {CONSTANT} from '../constant';
+
+const ITEM_DIR = {
+  UP: CONSTANT.ITEM_DIR.UP,
+  RIGHT: CONSTANT.ITEM_DIR.RIGHT,
+  DOWN: CONSTANT.ITEM_DIR.DOWN,
+  LEFT: CONSTANT.ITEM_DIR.LEFT
 };
 
 export class Item {
-  MAX_WIDTH = 4;
-  MAX_HEIGHT = 4;
+  MAX_WIDTH = CONSTANT.ITEM.MAX_WIDTH;
+  MAX_HEIGHT = CONSTANT.ITEM.MAX_HEIGHT;
   curDir = ITEM_DIR.UP;
 
   constructor(dir) {

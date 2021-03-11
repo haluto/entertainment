@@ -37,11 +37,15 @@ export default class GameScreen extends React.Component {
   drawCurItem = (drawItem) => {
     // drawItem === 0 means clean the item.
     if (drawItem === 0) {
+      let data = this.curItem.getItem();
       for(let i=0;i<this.curItem.MAX_WIDTH;i++) {
         for(let j=0;j<this.curItem.MAX_HEIGHT;j++) {
           let x = i+this.curPos.x;
           let y = j+this.curPos.y;
-          this.drawGrid(0, x, y);
+          // only clean the black grid, otherwise the mapData draw will be broken.
+          if (data[i][j] === 1) {
+            this.drawGrid(0, x, y);
+          }
         }
       }
     } else {
@@ -50,7 +54,10 @@ export default class GameScreen extends React.Component {
         for(let j=0;j<this.curItem.MAX_HEIGHT;j++) {
           let x = i+this.curPos.x;
           let y = j+this.curPos.y;
-          this.drawGrid(data[i][j], x, y);
+          // only draw the black grid, otherwise the mapData draw will be broken.
+          if (data[i][j] === 1) {
+            this.drawGrid(data[i][j], x, y);
+          }
         }
       }
     }

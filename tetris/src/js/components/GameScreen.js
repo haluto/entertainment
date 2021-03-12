@@ -134,18 +134,82 @@ export default class GameScreen extends React.Component {
     }
   }
 
+  moveLeftLoop = () => {
+    if (!this.doCollisionDetection(COLLISION_DETECTION_DIR.LEFT)) {
+      this.drawCurItem(0);
+      this.prePos.x = this.curPos.x;
+      this.prePos.y = this.curPos.y;
+      this.curPos.x --;
+      this.drawCurItem(1);
+    }
+  }
+
+  moveRightLoop = () => {
+    if (!this.doCollisionDetection(COLLISION_DETECTION_DIR.RIGHT)) {
+      this.drawCurItem(0);
+      this.prePos.x = this.curPos.x;
+      this.prePos.y = this.curPos.y;
+      this.curPos.x ++;
+      this.drawCurItem(1);
+    }
+  }
+
   doCollisionDetection = (cdDir) => {
     if (cdDir === COLLISION_DETECTION_DIR.DOWN) {
       let ret = false;
       let data = this.curItem.getItem()
       for(let i=0;i<this.curItem.MAX_WIDTH;i++) {
         for(let j=0;j<this.curItem.MAX_HEIGHT;j++) {
-          if (j+this.curPos.y < MAP_HEIGHT-1 &&
-                data[i][j] === 1 && 
-                this.mapData[i+this.curPos.x][j+this.curPos.y+1] === 1) {
+          let x = i+this.curPos.x;
+          let y = j+this.curPos.y;
+          if (y < MAP_HEIGHT-1 &&
+                data[i][j] === 1 &&
+                this.mapData[x][y+1] === 1) {
             ret = true;
             break;
-          } else if (j+this.curPos.y === MAP_HEIGHT-1 && data[i][j] === 1) {
+          } else if (y === MAP_HEIGHT-1 && data[i][j] === 1) {
+            ret = true;
+            break;
+          }
+        }
+      }
+      return ret;
+    }
+
+    if (cdDir === COLLISION_DETECTION_DIR.LEFT) {
+      let ret = false;
+      let data = this.curItem.getItem()
+      for(let i=0;i<this.curItem.MAX_WIDTH;i++) {
+        for(let j=0;j<this.curItem.MAX_HEIGHT;j++) {
+          let x = i+this.curPos.x;
+          let y = j+this.curPos.y;
+          if (x > 0 &&
+                data[i][j] === 1 && 
+                this.mapData[x-1][y] === 1) {
+            ret = true;
+            break;
+          } else if (x === 0 && data[i][j] === 1) {
+            ret = true;
+            break;
+          }
+        }
+      }
+      return ret;
+    }
+
+    if (cdDir === COLLISION_DETECTION_DIR.RIGHT) {
+      let ret = false;
+      let data = this.curItem.getItem()
+      for(let i=0;i<this.curItem.MAX_WIDTH;i++) {
+        for(let j=0;j<this.curItem.MAX_HEIGHT;j++) {
+          let x = i+this.curPos.x;
+          let y = j+this.curPos.y;
+          if (x < MAP_WIDTH-1 &&
+                data[i][j] === 1 && 
+                this.mapData[x+1][y] === 1) {
+            ret = true;
+            break;
+          } else if (x === MAP_WIDTH-1 && data[i][j] === 1) {
             ret = true;
             break;
           }
@@ -192,6 +256,61 @@ export default class GameScreen extends React.Component {
     }
   }
 
+  handleKeyDown = (e) => {
+    // arrow keys.
+    if (e.which > 36 && e.which < 41) {
+      switch (e.which) {
+        case 37: // left arrow
+        //new Date().getTime(); //to get timestamp
+        if (this.gameStatus === CONSTANT.GAME_STATUS.RUNNING) {
+          this.leftInterval = setInterval(this.moveLeftLoop, 100);
+        }
+        break;
+        case 39: // right arrow
+        if (this.gameStatus === CONSTANT.GAME_STATUS.RUNNING) {
+          this.rightInterval = setInterval(this.moveRightLoop, 100);
+        }
+        break;
+        case 38: // up arrow
+        // TODO: rotate
+        break;
+        case 40: // down arrow
+        // TODO: speed up drop down
+        break;
+
+        default:
+        break;
+      }
+      e.preventDefault();
+      return;
+    }
+  }
+
+  handleKeyUp = (e) => {
+    // arrow keys.
+    if (e.which > 36 && e.which < 41) {
+      switch (e.which) {
+        case 37: // left arrow
+        clearInterval(this.leftInterval);
+        break;
+        case 39: // right arrow
+        clearInterval(this.rightInterval);
+        break;
+        case 38: // up arrow
+        // do nothing
+        break;
+        case 40: // down arrow
+        console.log("down arrow UP");
+        break;
+
+        default:
+        break;
+      }
+      e.preventDefault();
+      return;
+    }
+  }
+
   componentDidMount = () => {
     let width = MAP_WIDTH * GRID_SIDE_LEN;
     let height = MAP_HEIGHT * GRID_SIDE_LEN;
@@ -212,7 +331,10 @@ export default class GameScreen extends React.Component {
 
   render = () => {
     return (
-      <div className="game-screen">
+      <div tabIndex="1" className="game-screen" style={{padding: '5px'}}
+        onKeyDown={this.handleKeyDown}
+        onKeyUp={this.handleKeyUp}
+      >
         <div ref={this.setGamePanelRef}>
           <canvas ref={this.setCanvasRef}></canvas>
         </div>

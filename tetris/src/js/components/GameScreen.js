@@ -29,8 +29,9 @@ export default class GameScreen extends React.Component {
     this.prePos = {x:NEW_ITEM_DEFAULT_X, y:0};
     this.curPos = {x:NEW_ITEM_DEFAULT_X, y:0};
 
+    this.gameStatus = CONSTANT.GAME_STATUS.NOT_START;
     this.state = {
-      status: CONSTANT.GAME_STATUS.NOT_START,
+      buttonStr: "Start",
     };
   }
 
@@ -64,12 +65,14 @@ export default class GameScreen extends React.Component {
   }
 
   drawScreen = () => {
-    let data = this.curItem.getItem();
-    // set current item to map.
-    for(let i=0;i<this.curItem.MAX_WIDTH;i++) {
-      for(let j=0;j<this.curItem.MAX_HEIGHT;j++) {
-        if (data[i][j] === 1) {
-          this.mapData[i+this.curPos.x][j+this.curPos.y] = data[i][j];
+    if (this.curItem) {
+      let data = this.curItem.getItem();
+      // set current item to map.
+      for(let i=0;i<this.curItem.MAX_WIDTH;i++) {
+        for(let j=0;j<this.curItem.MAX_HEIGHT;j++) {
+          if (data[i][j] === 1) {
+            this.mapData[i+this.curPos.x][j+this.curPos.y] = data[i][j];
+          }
         }
       }
     }
@@ -89,8 +92,8 @@ export default class GameScreen extends React.Component {
     } else {
       this.ctx.fillStyle = "rgba(255, 255, 255, 1)";
       // TODO: if need game help
-      //this.ctx.strokeStyle = "rgba(200, 200, 200, 0.5)";
-      this.ctx.strokeStyle = "rgba(255, 255, 255, 1)";
+      this.ctx.strokeStyle = "rgba(200, 200, 200, 0.5)";
+      //this.ctx.strokeStyle = "rgba(255, 255, 255, 1)";
     }
     this.ctx.clearRect(x*GRID_SIDE_LEN, y*GRID_SIDE_LEN, GRID_SIDE_LEN, GRID_SIDE_LEN);
     this.ctx.fillRect(x*GRID_SIDE_LEN+2, y*GRID_SIDE_LEN+2, GRID_SIDE_LEN-4, GRID_SIDE_LEN-4);
@@ -98,37 +101,37 @@ export default class GameScreen extends React.Component {
     this.ctx.restore();
   }
 
+  genItemAndDraw = () => {
+    let dir = getRandomInt(CONSTANT.ITEM_DIR.DIR_NUM);
+    // TODO: random item
+    this.curItem = new Item_L(dir);
+    this.curPos.x = NEW_ITEM_DEFAULT_X;
+    this.curPos.y = 0;
+    this.prePos.x = this.curPos.x;
+    this.prePos.y = this.curPos.y;
+    this.drawCurItem(1);
+  }
+
   gameLoop = () => {
-    if (this.curItem === null) {
-      let dir = getRandomInt(CONSTANT.ITEM_DIR.DIR_NUM);
-      // TODO: random item
-      this.curItem = new Item_L(dir);
-      this.curPos.x = NEW_ITEM_DEFAULT_X;
-      this.curPos.y = 0;
-      this.prePos.x = this.curPos.x;
-      this.prePos.y = this.curPos.y;
-      this.initData();
-      this.drawCurItem(1);
-    } else {
-      if (!this.doCollisionDetection(COLLISION_DETECTION_DIR.DOWN)) {
-        this.drawCurItem(0);
-        this.prePos.x = this.curPos.x;
-        this.prePos.y = this.curPos.y;
-        this.curPos.y ++;
-        this.drawCurItem(1);
-      } else { // TODO: check full line.
+    if (this.gameStatus === CONSTANT.GAME_STATUS.RUNNING) {
+      if (this.curItem === null) {
+        this.initData();
         this.drawScreen();
-        let dir = getRandomInt(CONSTANT.ITEM_DIR.DIR_NUM);
-        // TODO: random item
-        this.curItem = new Item_L(dir);
-        this.curPos.x = NEW_ITEM_DEFAULT_X;
-        this.curPos.y = 0;
-        this.prePos.x = this.curPos.x;
-        this.prePos.y = this.curPos.y;
-        this.drawCurItem(1);
+        this.genItemAndDraw();
+      } else {
+        if (!this.doCollisionDetection(COLLISION_DETECTION_DIR.DOWN)) {
+          this.drawCurItem(0);
+          this.prePos.x = this.curPos.x;
+          this.prePos.y = this.curPos.y;
+          this.curPos.y ++;
+          this.drawCurItem(1);
+        } else { // TODO: check full line.
+          this.drawScreen();
+          this.genItemAndDraw();
+        }
       }
+      setTimeout(this.gameLoop, 1000);
     }
-    setTimeout(this.gameLoop, 1000);
   }
 
   doCollisionDetection = (cdDir) => {
@@ -153,19 +156,31 @@ export default class GameScreen extends React.Component {
   }
 
   buttonClickCb = () => {
-    let status = this.state.status;
-    if (status === CONSTANT.GAME_STATUS.NOT_START) {
+    // change status.
+    if (this.gameStatus === CONSTANT.GAME_STATUS.NOT_START) {
       // start game
-      status = CONSTANT.GAME_STATUS.RUNNING;
+      this.gameStatus = CONSTANT.GAME_STATUS.RUNNING;
       this.gameLoop();
-    } else if (status === CONSTANT.GAME_STATUS.RUNNING) {
-      status = CONSTANT.GAME_STATUS.PAUSE;
-    } else if (status === CONSTANT.GAME_STATUS.PAUSE) {
-      status = CONSTANT.GAME_STATUS.NOT_START;
+    } else if (this.gameStatus === CONSTANT.GAME_STATUS.RUNNING) {
+      this.gameStatus = CONSTANT.GAME_STATUS.PAUSE;
+    } else if (this.gameStatus === CONSTANT.GAME_STATUS.PAUSE) {
+      this.gameStatus = CONSTANT.GAME_STATUS.RUNNING;
+      this.gameLoop();
     }
 
+    // then assign string as new status.
+    let buttonStr = 'Start';
+    if (this.gameStatus === CONSTANT.GAME_STATUS.NOT_START) {
+      buttonStr = 'Start';
+    } else if (this.gameStatus === CONSTANT.GAME_STATUS.RUNNING) {
+      buttonStr = 'Pause';
+    } else if (this.gameStatus === CONSTANT.GAME_STATUS.PAUSE) {
+      buttonStr = 'Resume';
+    } else {
+      buttonStr = 'Error';
+    }
     this.setState({
-      status: status,
+      buttonStr: buttonStr,
     });
   }
 
@@ -196,25 +211,13 @@ export default class GameScreen extends React.Component {
   }
 
   render = () => {
-
-    let buttonStr = '';
-    if (this.state.status == CONSTANT.GAME_STATUS.NOT_START) {
-      buttonStr = 'Start';
-    } else if (this.state.status == CONSTANT.GAME_STATUS.RUNNING) {
-      buttonStr = 'Pause';
-    } else if (this.state.status == CONSTANT.GAME_STATUS.PAUSE) {
-      buttonStr = 'Resume';
-    } else {
-      buttonStr = 'Error';
-    }
-
     return (
       <div className="game-screen">
         <div ref={this.setGamePanelRef}>
           <canvas ref={this.setCanvasRef}></canvas>
         </div>
         <div className="game-status">
-          <Button style={{width: '100px'}} onClick={this.buttonClickCb}>{buttonStr}</Button>
+          <Button style={{width: '100px'}} onClick={this.buttonClickCb}>{this.state.buttonStr}</Button>
         </div>
       </div>
     );

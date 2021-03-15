@@ -32,6 +32,7 @@ export default class GameScreen extends React.Component {
     this.gameStatus = CONSTANT.GAME_STATUS.NOT_START;
     this.state = {
       buttonStr: "Start",
+      score: 0,
     };
   }
 
@@ -77,6 +78,8 @@ export default class GameScreen extends React.Component {
       }
     }
 
+    this.curItem = null;
+
     for (let i=0;i<MAP_WIDTH;i++) {
       for (let j=0;j<MAP_HEIGHT;j++) {
         this.drawGrid(this.mapData[i][j], i, j);
@@ -110,9 +113,97 @@ export default class GameScreen extends React.Component {
     this.prePos.x = this.curPos.x;
     this.prePos.y = this.curPos.y;
     this.drawCurItem(1);
+
+    // Check gameover.
+    let gameover = false;
+    let data = this.curItem.getItem();
+    for(let i=0;i<this.curItem.MAX_WIDTH;i++) {
+      for(let j=0;j<this.curItem.MAX_HEIGHT;j++) {
+        let x = i+this.curPos.x;
+        let y = j+this.curPos.y;
+        if (data[i][j] === 1 && this.mapData[x][y] === 1) {
+          gameover = true;
+          break;
+        }
+      }
+    }
+    if (gameover) {
+      // TODO: draw gameover animation.
+      this.gameStatus = CONSTANT.GAME_STATUS.NOT_START;
+      this.setButtonString();
+      this.curItem = null;
+    }
   }
 
-  gameLoop = () => {
+  checkAndDrawElimination = async () => {
+    let fullLineArr = [];
+    for (let i=0;i<MAP_WIDTH;i++) {
+      let lineIsFull = true;
+      for (let j=0;j<MAP_HEIGHT;j++) {
+        if (this.mapData[i][j] === 0) {
+          lineIsFull = false;
+          break;
+        }
+      }
+      if (lineIsFull) {
+        fullLineArr.push(i);
+      }
+    }
+
+    if (fullLineArr.length > 0) {
+      // Score
+      let score = 0;
+      switch (fullLineArr.length) {
+        case 1:
+          score = 100;
+          break;
+        case 2:
+          score = 300;
+          break;
+        case 3:
+          score = 600;
+          break;
+        case 4:
+          score = 1000;
+          break;
+        default:
+          break;
+      }
+
+      // Draw animation.
+      let animFrames = 5;
+      let drawBlack = false;
+      while (animFrames > 0) {
+        for (let i=0;i<fullLineArr.length;i++) {
+          for (let j=0;j<MAP_HEIGHT;j++) {
+            this.drawGrid(drawBlack, fullLineArr[i], j);
+          }
+        }
+        await sleep(50);
+        animFrames --;
+        drawBlack = !drawBlack;
+      }
+
+      // Eliminate the full line.
+      while (fullLineArr.length > 0) {
+        let lineNum = fullLineArr.pop();
+        // TODO: would lineNum === 0 happen?
+        for (let i=lineNum;i>=0;i--) {
+          for (let j=0;j<MAP_HEIGHT;j++) {
+            if (i > 0)
+              this.mapData[i][j] = this.mapData[i-1][j];
+            else if (i === 0)
+              this.mapData[i][j] = 0;
+          }
+        }
+      }
+
+      // Redraw the screen.
+      this.drawScreen();
+    }
+  }
+
+  gameLoop = async () => {
     if (this.gameStatus === CONSTANT.GAME_STATUS.RUNNING) {
       if (this.curItem === null) {
         this.initData();
@@ -125,8 +216,9 @@ export default class GameScreen extends React.Component {
           this.prePos.y = this.curPos.y;
           this.curPos.y ++;
           this.drawCurItem(1);
-        } else { // TODO: check full line.
+        } else {
           this.drawScreen();
+          await this.checkAndDrawElimination();
           this.genItemAndDraw();
         }
       }
@@ -167,7 +259,7 @@ export default class GameScreen extends React.Component {
         for(let j=0;j<this.curItem.MAX_HEIGHT;j++) {
           let x = i+this.curPos.x;
           let y = j+this.curPos.y;
-          if (data[i][j] == 1) {
+          if (data[i][j] === 1) {
             if (x >= MAP_WIDTH || y >= MAP_HEIGHT) {
               canRotate = false;
               break;
@@ -254,20 +346,7 @@ export default class GameScreen extends React.Component {
     }
   }
 
-  buttonClickCb = () => {
-    // change status.
-    if (this.gameStatus === CONSTANT.GAME_STATUS.NOT_START) {
-      // start game
-      this.gameStatus = CONSTANT.GAME_STATUS.RUNNING;
-      this.gameLoop();
-    } else if (this.gameStatus === CONSTANT.GAME_STATUS.RUNNING) {
-      this.gameStatus = CONSTANT.GAME_STATUS.PAUSE;
-    } else if (this.gameStatus === CONSTANT.GAME_STATUS.PAUSE) {
-      this.gameStatus = CONSTANT.GAME_STATUS.RUNNING;
-      this.gameLoop();
-    }
-
-    // then assign string as new status.
+  setButtonString = () => {
     let buttonStr = 'Start';
     if (this.gameStatus === CONSTANT.GAME_STATUS.NOT_START) {
       buttonStr = 'Start';
@@ -283,12 +362,31 @@ export default class GameScreen extends React.Component {
     });
   }
 
+  buttonClickCb = () => {
+    // change status.
+    if (this.gameStatus === CONSTANT.GAME_STATUS.NOT_START) {
+      // start game
+      this.gameStatus = CONSTANT.GAME_STATUS.RUNNING;
+      this.gameLoop();
+    } else if (this.gameStatus === CONSTANT.GAME_STATUS.RUNNING) {
+      this.gameStatus = CONSTANT.GAME_STATUS.PAUSE;
+    } else if (this.gameStatus === CONSTANT.GAME_STATUS.PAUSE) {
+      this.gameStatus = CONSTANT.GAME_STATUS.RUNNING;
+      this.gameLoop();
+    }
+
+    // then assign string as new status.
+    this.setButtonString();
+  }
+
   initData = () => {
     for (let i=0;i<MAP_WIDTH;i++) {
       for (let j=0;j<MAP_HEIGHT;j++) {
         this.mapData[i][j] = 0;
       }
     }
+
+    this.setState({score: 0});
   }
 
   handleKeyDown = (e) => {
@@ -385,6 +483,9 @@ export default class GameScreen extends React.Component {
         </div>
         <div className="game-status">
           <Button style={{width: '100px'}} onClick={this.buttonClickCb}>{this.state.buttonStr}</Button>
+          <div>
+            Score: {this.state.score}
+          </div>
         </div>
       </div>
     );
@@ -394,4 +495,9 @@ export default class GameScreen extends React.Component {
 
 function getRandomInt(max) {
   return Math.floor(Math.random() * Math.floor(max));
+}
+
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }

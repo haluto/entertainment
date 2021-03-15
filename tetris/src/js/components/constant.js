@@ -24,4 +24,13 @@ export const CONSTANT = {
     MAX_WIDTH: 4,
     MAX_HEIGHT: 4
   },
+
+  KEY: {
+    ARROW_START: 37,
+    LEFT_ARROW: 37,
+    UP_ARROW: 38,
+    RIGHT_ARROW: 39,
+    DOWN_ARROW: 40,
+    ARROW_END: 40,
+  }
 };

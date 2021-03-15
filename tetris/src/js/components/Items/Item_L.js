@@ -11,7 +11,6 @@ export class Item_L extends Item {
         this.itemData[i][j] = 0;
       }
     }
-    console.log("Item_L");
 
     if (this.curDir === CONSTANT.ITEM_DIR.UP) {
       this.itemData[0][0] = 1;

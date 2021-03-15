@@ -130,7 +130,11 @@ export default class GameScreen extends React.Component {
           this.genItemAndDraw();
         }
       }
-      setTimeout(this.gameLoop, 1000);
+      let loopTimeout = 1000; // TODO: could be changed.
+      if (this.speedUp) {
+        loopTimeout = 100;
+      }
+      setTimeout(this.gameLoop, loopTimeout);
     }
   }
 
@@ -154,10 +158,41 @@ export default class GameScreen extends React.Component {
     }
   }
 
+  tryRotateItem = () => {
+    if (this.curItem) {
+      let canRotate = true;
+      this.curItem.rotateItem(true);
+      let data = this.curItem.getItem();
+      for(let i=0;i<this.curItem.MAX_WIDTH;i++) {
+        for(let j=0;j<this.curItem.MAX_HEIGHT;j++) {
+          let x = i+this.curPos.x;
+          let y = j+this.curPos.y;
+          if (data[i][j] == 1) {
+            if (x >= MAP_WIDTH || y >= MAP_HEIGHT) {
+              canRotate = false;
+              break;
+            } else if (this.mapData[x][y] === 1) {
+              canRotate = false;
+              break;
+            }
+          }
+        }
+      }
+      if (canRotate) {
+        this.curItem.rotateItem(false);
+        this.drawCurItem(0);
+        this.curItem.rotateItem(true);
+        this.drawCurItem(1);
+      } else {
+        this.curItem.rotateItem(false);
+      }
+    }
+  }
+
   doCollisionDetection = (cdDir) => {
     if (cdDir === COLLISION_DETECTION_DIR.DOWN) {
       let ret = false;
-      let data = this.curItem.getItem()
+      let data = this.curItem.getItem();
       for(let i=0;i<this.curItem.MAX_WIDTH;i++) {
         for(let j=0;j<this.curItem.MAX_HEIGHT;j++) {
           let x = i+this.curPos.x;
@@ -178,7 +213,7 @@ export default class GameScreen extends React.Component {
 
     if (cdDir === COLLISION_DETECTION_DIR.LEFT) {
       let ret = false;
-      let data = this.curItem.getItem()
+      let data = this.curItem.getItem();
       for(let i=0;i<this.curItem.MAX_WIDTH;i++) {
         for(let j=0;j<this.curItem.MAX_HEIGHT;j++) {
           let x = i+this.curPos.x;
@@ -199,7 +234,7 @@ export default class GameScreen extends React.Component {
 
     if (cdDir === COLLISION_DETECTION_DIR.RIGHT) {
       let ret = false;
-      let data = this.curItem.getItem()
+      let data = this.curItem.getItem();
       for(let i=0;i<this.curItem.MAX_WIDTH;i++) {
         for(let j=0;j<this.curItem.MAX_HEIGHT;j++) {
           let x = i+this.curPos.x;
@@ -257,25 +292,30 @@ export default class GameScreen extends React.Component {
   }
 
   handleKeyDown = (e) => {
-    // arrow keys.
-    if (e.which > 36 && e.which < 41) {
+    if (e.which >= CONSTANT.KEY.ARROW_START && e.which <= CONSTANT.KEY.ARROW_END) {
       switch (e.which) {
-        case 37: // left arrow
+        case CONSTANT.KEY.LEFT_ARROW:
         //new Date().getTime(); //to get timestamp
         if (this.gameStatus === CONSTANT.GAME_STATUS.RUNNING) {
-          this.leftInterval = setInterval(this.moveLeftLoop, 100);
+          // Press the key and hold, in some browser,
+          // the DOWN EVENT will be sent continously.
+          if (!this.leftInterval) {
+            this.leftInterval = setInterval(this.moveLeftLoop, 100);
+          }
         }
         break;
-        case 39: // right arrow
+        case CONSTANT.KEY.RIGHT_ARROW:
         if (this.gameStatus === CONSTANT.GAME_STATUS.RUNNING) {
-          this.rightInterval = setInterval(this.moveRightLoop, 100);
+          if (!this.rightInterval) {
+            this.rightInterval = setInterval(this.moveRightLoop, 100);
+          }
         }
         break;
-        case 38: // up arrow
-        // TODO: rotate
+        case CONSTANT.KEY.UP_ARROW:
+        this.tryRotateItem();
         break;
-        case 40: // down arrow
-        // TODO: speed up drop down
+        case CONSTANT.KEY.DOWN_ARROW:
+        this.speedUp = true;
         break;
 
         default:
@@ -287,20 +327,25 @@ export default class GameScreen extends React.Component {
   }
 
   handleKeyUp = (e) => {
-    // arrow keys.
-    if (e.which > 36 && e.which < 41) {
+    if (e.which >= CONSTANT.KEY.ARROW_START && e.which <= CONSTANT.KEY.ARROW_END) {
       switch (e.which) {
-        case 37: // left arrow
-        clearInterval(this.leftInterval);
+        case CONSTANT.KEY.LEFT_ARROW:
+        if (this.leftInterval) {
+          clearInterval(this.leftInterval);
+          this.leftInterval = null;
+        }
         break;
-        case 39: // right arrow
-        clearInterval(this.rightInterval);
+        case CONSTANT.KEY.RIGHT_ARROW:
+        if (this.rightInterval) {
+          clearInterval(this.rightInterval);
+          this.rightInterval = null;
+        }
         break;
-        case 38: // up arrow
+        case CONSTANT.KEY.UP_ARROW:
         // do nothing
         break;
-        case 40: // down arrow
-        console.log("down arrow UP");
+        case CONSTANT.KEY.DOWN_ARROW:
+        this.speedUp = false;
         break;
 
         default:

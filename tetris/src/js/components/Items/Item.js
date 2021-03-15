@@ -42,7 +42,6 @@ export class Item {
         this.curDir = ITEM_DIR.DOWN;
       }
     }
-    return this.getItem();
   }
 
   getItem = () => {

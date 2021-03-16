@@ -25,6 +25,22 @@ export const CONSTANT = {
     MAX_HEIGHT: 4
   },
 
+  CONFIG: {
+    LR_INTERVAL: 100, // left right interval in ms
+    DROP_DOWN_TIMEOUT_DEFAULT: 1000,
+    SPEED_UP_DROP_DOWN_TIMEOUT: 50,
+    ELIMINATE_ANIM: {
+      PER_FRAME_TIMEOUT: 80,
+      FRAMES: 5,
+    },
+    SCORE: {
+      ONE_LINE: 100,
+      TWO_LINES: 300,
+      THREE_LINES: 600,
+      FOUR_LINES: 1000,
+    },
+  },
+
   KEY: {
     ARROW_START: 37,
     LEFT_ARROW: 37,

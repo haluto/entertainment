@@ -137,16 +137,16 @@ export default class GameScreen extends React.Component {
 
   checkAndDrawElimination = async () => {
     let fullLineArr = [];
-    for (let i=0;i<MAP_WIDTH;i++) {
+    for (let j=0;j<MAP_HEIGHT;j++) {
       let lineIsFull = true;
-      for (let j=0;j<MAP_HEIGHT;j++) {
+      for (let i=0;i<MAP_WIDTH;i++) {
         if (this.mapData[i][j] === 0) {
           lineIsFull = false;
           break;
         }
       }
       if (lineIsFull) {
-        fullLineArr.push(i);
+        fullLineArr.push(j);
       }
     }
 
@@ -155,31 +155,33 @@ export default class GameScreen extends React.Component {
       let score = 0;
       switch (fullLineArr.length) {
         case 1:
-          score = 100;
+          score = CONSTANT.CONFIG.SCORE.ONE_LINE;
           break;
         case 2:
-          score = 300;
+          score = CONSTANT.CONFIG.SCORE.TWO_LINES;
           break;
         case 3:
-          score = 600;
+          score = CONSTANT.CONFIG.SCORE.THREE_LINES;
           break;
         case 4:
-          score = 1000;
+          score = CONSTANT.CONFIG.SCORE.FOUR_LINES;
           break;
         default:
           break;
       }
+      score += this.state.score;
+      this.setState({score:score});
 
       // Draw animation.
-      let animFrames = 5;
+      let animFrames = CONSTANT.CONFIG.ELIMINATE_ANIM.FRAMES;
       let drawBlack = false;
       while (animFrames > 0) {
-        for (let i=0;i<fullLineArr.length;i++) {
-          for (let j=0;j<MAP_HEIGHT;j++) {
-            this.drawGrid(drawBlack, fullLineArr[i], j);
+        for (let j=0;j<fullLineArr.length;j++) {
+          for (let i=0;i<MAP_WIDTH;i++) {
+            this.drawGrid(drawBlack, i, fullLineArr[j]);
           }
         }
-        await sleep(50);
+        await sleep(CONSTANT.CONFIG.ELIMINATE_ANIM.PER_FRAME_TIMEOUT);
         animFrames --;
         drawBlack = !drawBlack;
       }
@@ -188,11 +190,11 @@ export default class GameScreen extends React.Component {
       while (fullLineArr.length > 0) {
         let lineNum = fullLineArr.pop();
         // TODO: would lineNum === 0 happen?
-        for (let i=lineNum;i>=0;i--) {
-          for (let j=0;j<MAP_HEIGHT;j++) {
-            if (i > 0)
-              this.mapData[i][j] = this.mapData[i-1][j];
-            else if (i === 0)
+        for (let j=lineNum;j>=0;j--) {
+          for (let i=0;i<MAP_WIDTH;i++) {
+            if (j > 0)
+              this.mapData[i][j] = this.mapData[i][j-1];
+            else if (j === 0)
               this.mapData[i][j] = 0;
           }
         }
@@ -205,6 +207,9 @@ export default class GameScreen extends React.Component {
 
   gameLoop = async () => {
     if (this.gameStatus === CONSTANT.GAME_STATUS.RUNNING) {
+
+      this.inGameLoop = true;
+
       if (this.curItem === null) {
         this.initData();
         this.drawScreen();
@@ -222,11 +227,14 @@ export default class GameScreen extends React.Component {
           this.genItemAndDraw();
         }
       }
-      let loopTimeout = 1000; // TODO: could be changed.
+      let loopTimeout = CONSTANT.CONFIG.DROP_DOWN_TIMEOUT_DEFAULT;
       if (this.speedUp) {
-        loopTimeout = 100;
+        loopTimeout = CONSTANT.CONFIG.SPEED_UP_DROP_DOWN_TIMEOUT;
       }
-      setTimeout(this.gameLoop, loopTimeout);
+
+      this.gameLoopTimeout = setTimeout(this.gameLoop, loopTimeout);
+
+      this.inGameLoop = false;
     }
   }
 
@@ -393,19 +401,18 @@ export default class GameScreen extends React.Component {
     if (e.which >= CONSTANT.KEY.ARROW_START && e.which <= CONSTANT.KEY.ARROW_END) {
       switch (e.which) {
         case CONSTANT.KEY.LEFT_ARROW:
-        //new Date().getTime(); //to get timestamp
         if (this.gameStatus === CONSTANT.GAME_STATUS.RUNNING) {
           // Press the key and hold, in some browser,
           // the DOWN EVENT will be sent continously.
           if (!this.leftInterval) {
-            this.leftInterval = setInterval(this.moveLeftLoop, 100);
+            this.leftInterval = setInterval(this.moveLeftLoop, CONSTANT.CONFIG.LR_INTERVAL);
           }
         }
         break;
         case CONSTANT.KEY.RIGHT_ARROW:
         if (this.gameStatus === CONSTANT.GAME_STATUS.RUNNING) {
           if (!this.rightInterval) {
-            this.rightInterval = setInterval(this.moveRightLoop, 100);
+            this.rightInterval = setInterval(this.moveRightLoop, CONSTANT.CONFIG.LR_INTERVAL);
           }
         }
         break;
@@ -414,6 +421,14 @@ export default class GameScreen extends React.Component {
         break;
         case CONSTANT.KEY.DOWN_ARROW:
         this.speedUp = true;
+
+        if (!this.inGameLoop) {
+          if (this.gameLoopTimeout) {
+            clearTimeout(this.gameLoopTimeout);
+            this.gameLoopTimeout = null;
+            this.gameLoop();
+          }
+        }
         break;
 
         default:

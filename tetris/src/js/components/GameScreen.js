@@ -1,6 +1,9 @@
 import React from 'react';
 import {Item_L, ITEM_L, Item_Anti_L, ITEM_ANTI_L} from './Items/Item_L';
 import {Item_Z, ITEM_Z, Item_Anti_Z, ITEM_ANTI_Z} from './Items/Item_Z';
+import {Item_Line, ITEM_LINE} from './Items/Item_Line';
+import {Item_T, ITEM_T} from './Items/Item_T';
+import {Item_Block, ITEM_BLOCK} from './Items/Item_Block';
 import {Button} from 'antd';
 import {CONSTANT} from './constant';
 
@@ -9,6 +12,9 @@ const ITEMS = {
   [ITEM_ANTI_L]: Item_Anti_L,
   [ITEM_Z]: Item_Z,
   [ITEM_ANTI_Z]: Item_Anti_Z,
+  [ITEM_LINE]: Item_Line,
+  [ITEM_T]: Item_T,
+  [ITEM_BLOCK]: Item_Block,
 };
 
 const MAP_WIDTH = CONSTANT.GAME_PANEL.MAP_WIDTH;
@@ -98,7 +104,7 @@ export default class GameScreen extends React.Component {
   drawGrid = (black, x, y) => {
     this.ctx.save();
     if (black) {
-      this.ctx.fillStyle = "rgba(100, 100, 100, 1)";
+      this.ctx.fillStyle = "rgba(255, 0, 0, 1)";
       this.ctx.strokeStyle = "rgba(0, 0, 0, 1)";
     } else {
       this.ctx.fillStyle = "rgba(255, 255, 255, 1)";
@@ -120,7 +126,10 @@ export default class GameScreen extends React.Component {
     if (debugItem) {
       //this.curItem = new Item_L(dir);
       //this.curItem = new Item_Anti_L(dir);
-      this.curItem = new Item_Z(dir);
+      //this.curItem = new Item_Z(dir);
+      //this.curItem = new Item_Line(dir);
+      //this.curItem = new Item_T(dir);
+      this.curItem = new Item_Block(dir);
     } else {
       let itemTypesArr = Object.keys(ITEMS);
       let numOfItems = itemTypesArr.length;
@@ -161,7 +170,7 @@ export default class GameScreen extends React.Component {
 
   checkAndDrawElimination = async () => {
     let fullLineArr = [];
-    for (let j=0;j<MAP_HEIGHT;j++) {
+    for (let j=MAP_HEIGHT-1;j>=0;j--) {
       let lineIsFull = true;
       for (let i=0;i<MAP_WIDTH;i++) {
         if (this.mapData[i][j] === 0) {
@@ -213,6 +222,7 @@ export default class GameScreen extends React.Component {
       // Eliminate the full line.
       while (fullLineArr.length > 0) {
         let lineNum = fullLineArr.pop();
+        console.log(`lineNum= ${lineNum}`);
         // Would lineNum === 0 happen? No.
         for (let j=lineNum;j>=0;j--) {
           for (let i=0;i<MAP_WIDTH;i++) {
@@ -429,6 +439,7 @@ export default class GameScreen extends React.Component {
           // Press the key and hold, in some browser,
           // the DOWN EVENT will be sent continously.
           if (!this.leftInterval) {
+            this.moveLeftLoop();
             this.leftInterval = setInterval(this.moveLeftLoop, CONSTANT.CONFIG.LR_INTERVAL);
           }
         }
@@ -436,6 +447,7 @@ export default class GameScreen extends React.Component {
         case CONSTANT.KEY.RIGHT_ARROW:
         if (this.gameStatus === CONSTANT.GAME_STATUS.RUNNING) {
           if (!this.rightInterval) {
+            this.moveRightLoop();
             this.rightInterval = setInterval(this.moveRightLoop, CONSTANT.CONFIG.LR_INTERVAL);
           }
         }

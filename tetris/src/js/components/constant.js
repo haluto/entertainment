@@ -26,7 +26,7 @@ export const CONSTANT = {
   },
 
   CONFIG: {
-    LR_INTERVAL: 100, // left right interval in ms
+    LR_INTERVAL: 100, // left right key moving interval in ms
     DROP_DOWN_TIMEOUT_DEFAULT: 1000,
     SPEED_UP_DROP_DOWN_TIMEOUT: 50,
     ELIMINATE_ANIM: {

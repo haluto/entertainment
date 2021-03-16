@@ -1,5 +1,5 @@
 import React from 'react';
-import {Item_L, ITEM_L} from './Items/Item_L';
+import {Item_L, ITEM_L, Item_Anti_L, ITEM_ANTI_L} from './Items/Item_L';
 import {Button} from 'antd';
 import {CONSTANT} from './constant';
 
@@ -107,7 +107,8 @@ export default class GameScreen extends React.Component {
   genItemAndDraw = () => {
     let dir = getRandomInt(CONSTANT.ITEM_DIR.DIR_NUM);
     // TODO: random item
-    this.curItem = new Item_L(dir);
+    this.curItem = new Item_Anti_L(dir);
+    //this.curItem = new Item_L(dir);
     this.curPos.x = NEW_ITEM_DEFAULT_X;
     this.curPos.y = 0;
     this.prePos.x = this.curPos.x;
@@ -189,7 +190,7 @@ export default class GameScreen extends React.Component {
       // Eliminate the full line.
       while (fullLineArr.length > 0) {
         let lineNum = fullLineArr.pop();
-        // TODO: would lineNum === 0 happen?
+        // Would lineNum === 0 happen? No.
         for (let j=lineNum;j>=0;j--) {
           for (let i=0;i<MAP_WIDTH;i++) {
             if (j > 0)

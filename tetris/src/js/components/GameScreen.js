@@ -1,7 +1,15 @@
 import React from 'react';
 import {Item_L, ITEM_L, Item_Anti_L, ITEM_ANTI_L} from './Items/Item_L';
+import {Item_Z, ITEM_Z, Item_Anti_Z, ITEM_ANTI_Z} from './Items/Item_Z';
 import {Button} from 'antd';
 import {CONSTANT} from './constant';
+
+const ITEMS = {
+  [ITEM_L]: Item_L,
+  [ITEM_ANTI_L]: Item_Anti_L,
+  [ITEM_Z]: Item_Z,
+  [ITEM_ANTI_Z]: Item_Anti_Z,
+};
 
 const MAP_WIDTH = CONSTANT.GAME_PANEL.MAP_WIDTH;
 const MAP_HEIGHT = CONSTANT.GAME_PANEL.MAP_HEIGHT;
@@ -104,11 +112,26 @@ export default class GameScreen extends React.Component {
     this.ctx.restore();
   }
 
-  genItemAndDraw = () => {
+  genRandomItem = () => {
+    let debugItem = false;
+
     let dir = getRandomInt(CONSTANT.ITEM_DIR.DIR_NUM);
-    // TODO: random item
-    this.curItem = new Item_Anti_L(dir);
-    //this.curItem = new Item_L(dir);
+    
+    if (debugItem) {
+      //this.curItem = new Item_L(dir);
+      //this.curItem = new Item_Anti_L(dir);
+      this.curItem = new Item_Z(dir);
+    } else {
+      let itemTypesArr = Object.keys(ITEMS);
+      let numOfItems = itemTypesArr.length;
+      let idx = getRandomInt(numOfItems);
+      let itemType = itemTypesArr[idx];
+      this.curItem = new ITEMS[itemType](dir);
+    }
+  }
+
+  genItemAndDraw = () => {
+    this.genRandomItem();
     this.curPos.x = NEW_ITEM_DEFAULT_X;
     this.curPos.y = 0;
     this.prePos.x = this.curPos.x;
